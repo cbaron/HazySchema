@@ -1,5 +1,5 @@
 const RestHandler = {
-    condition( request, path ) { return /application\/json/.test( request.headers.accept ) && this.Mongo.collections[ path[0] ] ) },
+    condition( request, path ) { return /application\/json/.test( request.headers.accept ) && this.Mongo.collections[ path[0] ] },
     method: 'rest'
 }
 
@@ -35,8 +35,6 @@ module.exports = Object.create( Object.assign( {}, require('./lib/MyObject'), {
 
     "PUT": [ RestHandler ],
 
-    
-
     constructor() {
         this.isDev = ( process.env.ENV === 'development' )
 
@@ -45,16 +43,16 @@ module.exports = Object.create( Object.assign( {}, require('./lib/MyObject'), {
         return this
     },
 
-    handleFailure( response, err, log ) {
+    handleFailure( response, err, log, statusCode=500 ) {
         let message = undefined
 
         if( err.message === "Handled" ) return
         
-        message = process.env.NODE_ENV === "production" ? "Unknown Error" : err.stack || err.toString()
+        message = process.env.NODE_ENV === "production" ? "Unknown Error" : err
 
         if( log ) this.Error( err )
 
-        response.writeHead( err.statusCode || 500, {
+        response.writeHead( statusCode, {
             "Content-Length": Buffer.byteLength( message ),
             'Content-Type': 'text/plain',
             'Cache-Control': 'no-cache, no-store, must-revalidate'
@@ -64,11 +62,11 @@ module.exports = Object.create( Object.assign( {}, require('./lib/MyObject'), {
     },
 
     handler( request, response ) {
-        const path = request.url.split('/').slice(3),
-              routeFound,
-              notFound = { body: "Not Found", statusCode: 404 }
+        const path = request.url.split('/').slice(1),
+              notFound = "Not Found"
+        let routeFound
 
-        if( ! this.resources[ request.method ] ) return this.handleFailure( response, notFound, false )
+        if( ! this[ request.method ] ) return this.handleFailure( response, notFound, false, 404 )
 
         request.setEncoding('utf8')
 
@@ -81,7 +79,7 @@ module.exports = Object.create( Object.assign( {}, require('./lib/MyObject'), {
             return true
         } )
 
-        if( routeFound === undefined ) return this.handleFailure( response, { body: "Not Found", statusCode: 404 }, false )
+        if( routeFound === undefined ) return this.handleFailure( response, notFound, false, 404 )
     },
 
     html( request, response, path ) {
@@ -93,11 +91,11 @@ module.exports = Object.create( Object.assign( {}, require('./lib/MyObject'), {
         return Promise.resolve()
     },
 
-    rest( request, response ) {
+    rest( request, response, path ) {
         return Object.create( require(`./resource`), {
             request: { value: request },
             response: { value: response },
-            path: { value: request.url.split('/').slice(3) }
+            path: { value: path }
         } ).apply( request.method )
     },
 
@@ -106,10 +104,10 @@ module.exports = Object.create( Object.assign( {}, require('./lib/MyObject'), {
             filePath = `${__dirname}/${path.join('/')}/${fileName}`,
             ext = this.Path.extname( filePath )
 
-        return this.P( this.FS.stat, [ filePath ] )
+        return this.P( this.Fs.stat, [ filePath ] )
         .then( ( [ stat ] ) => new Promise( ( resolve, reject ) => {
             
-            var stream = this.FS.createReadStream( filePath )
+            var stream = this.Fs.createReadStream( filePath )
             
             response.on( 'error', e => { stream.end(); reject(e) } )
             stream.on( 'error', reject )

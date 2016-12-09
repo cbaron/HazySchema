@@ -28,7 +28,7 @@ module.exports = Object.create( Object.assign( { }, require('../lib/MyObject'), 
     },
 
     getCollectionData() {
-        this.forEach( db => db.listCollections( { name: { $ne: 'system.indexes' } } ), this.cacheCollection, this )
+        return this.forEach( db => db.listCollections( { name: { $ne: 'system.indexes' } } ), this.cacheCollection, this )
     },
 
     getDb() { return this._connect() }

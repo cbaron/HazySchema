@@ -1,11 +1,12 @@
-const fs = require('fs'),
-      router = require(./router')
+const fs = require('fs')
 
 require('node-env-file')( __dirname + '/.env' )
+      
+const router = require('./router')
 
 router.collectionPromise.then( () => 
     require('https')
-        .`reateServer( { key: fs.readFileSync( process.env.SSLKEY ), cert: fs.readFileSync( process.env.SSLCERT ) }, router.handler.bind(router) )
+        .createServer( { key: fs.readFileSync( process.env.SSLKEY ), cert: fs.readFileSync( process.env.SSLCERT ) }, router.handler.bind(router) )
         .listen( process.env.PORT )
 )
 .catch( e => {
