@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /*
-Company,Last Name,First Name,Title,Customer Type,Street,Street2,City,State,ZIP,Ship Addr Name 1,Ship Full Name 1,Ship Company 1,Ship Street2 1,Phone 1,Phone 2,Alt Contact,Alt Phone,Use With QB (Yes/No),Accept Checks (Yes/No),Use Charge Account (Yes/No),Disc %,Last Sale,Tax-exempt,EMail,EMail Notification (Yes/No),Past Due,Rewards Member (Yes/No),Customer Reward ID
+Department Code,Department Name,Comments,Tax Code,Margin Percent
 */
 
 require('node-env-file')( __dirname + '/../../.env' )
@@ -9,7 +9,7 @@ require('node-env-file')( __dirname + '/../../.env' )
 const Fs = require('fs'),
       Mongo = require('../../dal/Mongo'),
       lineReader = require('readline').createInterface( {
-          input: Fs.createReadStream(`${__dirname}/../bootstrap/QuickBookCustomers.csv`)
+          input: Fs.createReadStream(`${__dirname}/../bootstrap/QuickBookDepartments.csv`)
       } ),
       model = {
           '1': 'lastName',
