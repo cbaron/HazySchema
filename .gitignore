@@ -39,3 +39,5 @@ jspm_packages
 private
 
 .env
+
+mongo/bootstrap
