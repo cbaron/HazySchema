@@ -12,46 +12,29 @@ const Fs = require('fs'),
           input: Fs.createReadStream(`${__dirname}/../bootstrap/QuickBookDepartments.csv`)
       } ),
       model = {
-          '1': 'lastName',
-          '2': 'firstName',
-          '5': 'address',
-          '7': 'city',
-          '8': 'state',
-          '9': 'zip',
-          '14': 'phoneNumber',
-          '22': 'lastSale',
-          '24': 'email',
-          '28': 'customerRewardId'
+          name: '1'
       }
 
 let Db = undefined,
     seen = { },
     seenLineOne = false,
-    chain = Mongo.getDb().then( db => Promise.resolve( Db = db ) )
+    chain = Mongo.getDb().then( db => {
+        db.createCollection('Department')
+        return Promise.resolve( Db = db )
+    } )
 
 lineReader.on( 'line', line => {
     if( ! seenLineOne ) return seenLineOne = true
 
     line = line.split(',')
 
-    const email = line[ 24 ].toLowerCase()
+    const name = line[ model.name ]
 
-    if( seen[ email ] ) return
+    if( seen[ name ] ) return
 
-    seen[ email ] = true
+    seen[ name ] = true
 
-    chain = chain.then( () => Db.collection('Person').insertOne( {
-        lastName: line[ 1 ],
-        firstName: line[ 2 ],
-        address: line[ 5 ],
-        city: line[ 5 ],
-        state: line[ 8 ],
-        zip: line[ 9 ],
-        phoneNumber: line[ 14 ],
-        lastSale: new Date( line[ 22 ] ),
-        email,
-        customerRewardId: line[ 28 ].toLowerCase()
-    } ) )
+    chain = chain.then( () => Db.collection('Department').insertOne( { name } ) )
 } )
 
 lineReader.on( 'close', line => {

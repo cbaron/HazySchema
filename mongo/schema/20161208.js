@@ -5,6 +5,9 @@ require('node-env-file')( __dirname + '/../../.env' );
 require('mongodb').MongoClient.connect(process.env.MONGODB)
 .then( db => 
     db.createCollection('Person')
+    .then( () => db.createCollection('Department') )
+    .then( () => db.createCollection('Inventory') )
+    .then( () => db.createCollection('Vendor') )
     .then( () => db.createCollection('WebPageElement') )
     .then( () => db.createCollection('MediaObject') )
     .then( () => db.collection('MediaObject').insertMany( [
