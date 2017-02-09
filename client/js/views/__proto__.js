@@ -59,9 +59,9 @@ module.exports = Object.assign( { }, require('../../../lib/MyObject'), require('
     },
 
     getData() {
-        if( !this.model ) this.model = Object.create( this.Model, { resource: { value: this.name } } )
+        if( !this.model ) this.model = Object.create( this.Model, { resource: { value: this.type } } )
 
-        return this.model.get()
+        return this.model.get( { query: { name: this.name } } )
     },
 
     getTemplateOptions() { return (this.model) ? this.model.data : {} },

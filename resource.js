@@ -66,23 +66,41 @@ module.exports = Object.assign( { }, require('./lib/MyObject'), {
         )
     },
 
-    GET() {
-        this.itemListElements = [ ]
-        this.Mongo.forEach( db => db.collection( this.path[0] ).find( this.query ), this._addListElement, this )
-        .then( () =>
-            Promise.resolve(
-                this.respond( {
-                    body: { 
-                        "@context": "http://schema.org",
-                        "@id": request.url,
-                        "@type": `ItemList`,
-                        name: this.path[0],
-                        description: `A list of ${this.path[0]} Objects`,
-                        itemListElement: this.itemListElements
-                    }
+    handleWebPageElement( WebPageElement, db ) {
+        return this.handleItemList( WebPageElement.mainEntity.itemListElement, db )
+        .then( itemList => {
+            WebPageElement.mainEntity.itemListElement = itemList
+            return Promise.resolve( WebPageElement )
+        } )
+    },
+
+    handleItemList( items, db ) {
+        console.log( items )
+        return Promise.all( items.map( item => db.collection( item[ "@type" ] ).findOne( { _id: item._id } ) ) )
+        .then( results =>
+            Promise.all(
+                results.map( result => {
+                    console.log( result );   
+                    return ( result && result["@type"] && result[ "@type" ] === "ItemList" )
+                    ? db.collection( 'ItemList' ).findOne( { _id: result._id } ).then( itemList => this.handleItemList( itemList.itemListElement, db ) )
+                    : Promise.resolve( result )
                 } )
             )
-        )
+        ) 
+    },
+
+    GET() {
+        return this.Mongo.forEach( db => db.collection( this.path[0] ).find( this.query ), this[ `handle${this.path[0]}` ], this )
+        .then( result => {
+            console.log( result );
+            return Promise.resolve(
+                this.respond( {
+                    body: Object.assign( result, {
+                        "@context": "http://schema.org",
+                        "@id": this.request.url } )
+                } )
+            )
+        } )
     },
 
     OPTIONS() {
@@ -107,13 +125,13 @@ module.exports = Object.assign( { }, require('./lib/MyObject'), {
             }
         } ]
 
-        this.Mongo.forEach( db => db.collection( this.path[0] ).find(), this._addViewNavigationElements, this )
+        return this.Mongo.forEach( db => db.collection( this.path[0] ).find(), this._addViewNavigationElements, this )
         .then( () =>
             Promise.resolve(
                 this.respond( {
                     body: { 
                         "@context": "http://schema.org",
-                        "@id": request.url,
+                        "@id": this.request.url,
                         "@type": `ItemList`,
                         name: this.path[0],
                         description: `A list of ${this.path[0]} Objects`,

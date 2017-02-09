@@ -23,6 +23,8 @@ module.exports = Object.assign( {}, require('./__proto__'), {
 
         this.emit('signout')
 
-    }
+    },
+
+    type: 'WebPageElement'
 
 } )

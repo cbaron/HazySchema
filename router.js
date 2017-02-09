@@ -48,7 +48,7 @@ module.exports = Object.create( Object.assign( {}, require('./lib/MyObject'), {
 
         if( err.message === "Handled" ) return
         
-        message = process.env.NODE_ENV === "production" ? "Unknown Error" : err
+        message = process.env.NODE_ENV === "production" ? "Unknown Error" : err.toString()
 
         if( log ) this.Error( err )
 
@@ -62,24 +62,30 @@ module.exports = Object.create( Object.assign( {}, require('./lib/MyObject'), {
     },
 
     handler( request, response ) {
-        const path = request.url.split('/').slice(1),
-              notFound = "Not Found"
-        let routeFound
+        const notFound = "Not Found"
+
+        let path = request.url.split('/').slice(1)
+            lastPath = path[ path.length - 1 ],
+            queryIndex = lastPath.indexOf('?'),
+            qs = ''
+
+        if( queryIndex !== -1 ) {
+            qs = lastPath.slice( queryIndex + 1 )
+            path[ path.length - 1 ] = lastPath.slice( 0, queryIndex )
+        }
 
         if( ! this[ request.method ] ) return this.handleFailure( response, notFound, false, 404 )
 
         request.setEncoding('utf8')
 
-        routeFound = this[ request.method ].find( resource => {
+        if( this[ request.method ].find( resource => {
             if( ! Reflect.apply( resource.condition, this, [ request, path ] ) ) return false
-        
-            this[ resource.method ]( request, response, path )
+    
+            this[ resource.method ]( request, response, path, qs )
             .catch( err => this.handleFailure( response, err, true ) )
 
             return true
-        } )
-
-        if( routeFound === undefined ) return this.handleFailure( response, notFound, false, 404 )
+        } ) === undefined ) return this.handleFailure( response, notFound, false, 404 )
     },
 
     html( request, response, path ) {
@@ -91,11 +97,12 @@ module.exports = Object.create( Object.assign( {}, require('./lib/MyObject'), {
         return Promise.resolve()
     },
 
-    rest( request, response, path ) {
+    rest( request, response, path, qs ) {
         return Object.create( require(`./resource`), {
             request: { value: request },
             response: { value: response },
-            path: { value: path }
+            path: { value: path },
+            qs: { value: qs }
         } ).apply( request.method )
     },
 

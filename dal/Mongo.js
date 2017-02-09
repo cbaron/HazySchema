@@ -9,12 +9,21 @@ module.exports = Object.create( Object.assign( { }, require('../lib/MyObject'), 
         .then( db => {
             let cursor = Reflect.apply( cursorFn, thisVar, [ db ] )
             return new Promise( ( resolve, reject ) => {
-                let handler = function( item ) {
-                    if( item === null ) return resolve(db.close())
+                let rv = [ ],
+                    handler = function( item ) {
+                        if( item === null ) {
+                            db.close()
+                            return resolve(rv)
+                        }
 
-                    Reflect.apply( callbackFn, thisVar, [ item ] )
-                    cursor.next().then( handler ).catch( reject )
-                }
+                        Reflect.apply( callbackFn, thisVar, [ item, db ] )
+                        .then( result => {
+                            rv.push( result )
+                            return cursor.next()
+                        } )
+                        .then( handler )
+                        .catch( reject )
+                    }
                     
                 cursor.next()
                 .then( handler )
@@ -24,7 +33,7 @@ module.exports = Object.create( Object.assign( { }, require('../lib/MyObject'), 
     },
 
     cacheCollection( collection ) {
-        this.collections[ collection.name ] = { }
+        return Promise.resolve( this.collections[ collection.name ] = { } )
     },
 
     getCollectionData() {
