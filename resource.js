@@ -79,11 +79,10 @@ module.exports = Object.assign( { }, require('./lib/MyObject'), {
         return Promise.all( items.map( item => db.collection( item[ "@type" ] ).findOne( { _id: item._id } ) ) )
         .then( results =>
             Promise.all(
-                results.map( result => {
-                    console.log( result );   
-                    return ( result && result["@type"] && result[ "@type" ] === "ItemList" )
-                    ? db.collection( 'ItemList' ).findOne( { _id: result._id } ).then( itemList => this.handleItemList( itemList.itemListElement, db ) )
-                    : Promise.resolve( result )
+                results.map( ( result, i ) => {
+                    return ( items[i][ "@type" ] === "ItemList" )
+                        ? db.collection( 'ItemList' ).findOne( { _id: result._id } ).then( itemList => this.handleItemList( itemList.itemListElement, db ) )
+                        : Promise.resolve( Object.assign( result, { "@type": items[i][ "@type" ] } ) )
                 } )
             )
         ) 
@@ -92,7 +91,6 @@ module.exports = Object.assign( { }, require('./lib/MyObject'), {
     GET() {
         return this.Mongo.forEach( db => db.collection( this.path[0] ).find( this.query ), this[ `handle${this.path[0]}` ], this )
         .then( result => {
-            console.log( result );
             return Promise.resolve(
                 this.respond( {
                     body: Object.assign( result, {
