@@ -1,4 +1,4 @@
-header
+.Header
     background-color: black
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.35)
     border-top: 1px solid black
@@ -11,7 +11,7 @@ header
     width: 100%
     z-index: 100
 
-    .ItemList
+    > .ItemList
         displayFlex()
        
         li
@@ -25,12 +25,21 @@ header
                 flex(1)
                      
     img
-        height: 3rem
-        margin: 1rem
+        &.logo-white
+            height: 3rem
+            margin: 1rem
+        
+        &.profile
+            height: 2rem
+            margin: 1.5rem
         
         
-
     li
         display: inline-block
-        font-size: 1rem
-        text-transform: uppercase
+
+        .SiteNavigationElement
+            color: white
+            font-size: 1rem
+            line-height: 1rem
+            margin: 2rem 1rem
+            text-transform: uppercase

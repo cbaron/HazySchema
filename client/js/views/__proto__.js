@@ -139,7 +139,10 @@ module.exports = Object.assign( { }, require('../../../lib/MyObject'), require('
     slurpEl( el ) {
         var key = el.getAttribute( this.slurp.attr ) || 'container'
 
-        if( key === 'container' ) el.classList.add( this.name )
+        if( key === 'container' ) {
+            el.classList.add( this.name )
+            if( this.model && this.model.data && this.model.data.name ) el.classList.add( this.model.data.name )
+        }
 
         this.els[ key ] = Array.isArray( this.els[ key ] )
             ? this.els[ key ].push( el )
