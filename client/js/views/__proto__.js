@@ -50,16 +50,15 @@ module.exports = Object.assign( { }, require('../../../lib/MyObject'), require('
     fetchAndDisplay() {
         return this.getData()
         .then( () => 
-            this.mainEntity = 
-                this.factory.create(
-                    this.model.data.mainEntity["@type"],
-                    { insertion: { value: { el: this.els.container } }, model: { value: { data: this.model.data.mainEntity } } }
-                )
+            this.factory.create(
+                this.model.data.mainEntity["@type"],
+                { insertion: { value: { el: this.els.container } }, model: { value: { data: this.model.data.mainEntity } } }
+            )
         )
     },
 
     getData() {
-        if( !this.model ) this.model = Object.create( this.Model, { resource: { value: this.type } } )
+        if( !this.model ) this.model = Object.create( this.Model, { resource: { value: this.type }, headers: { value: { accept: 'application/ld+json' } } } )
 
         return this.model.get( { query: { name: this.name } } )
     },

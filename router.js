@@ -1,5 +1,5 @@
 const RestHandler = {
-    condition( request, path ) { return /application\/json/.test( request.headers.accept ) && this.Mongo.collections[ path[0] ] },
+    condition( request, path ) { return /application\/json/.test( request.headers.accept ) && ( this.Mongo.collections[ path[0] ] || this.resources[ path[0] ] ) },
     method: 'rest'
 }
 
@@ -21,8 +21,8 @@ module.exports = Object.create( Object.assign( {}, require('./lib/MyObject'), {
             condition: ( request, path ) => /text\/html/.test( request.headers.accept ),
             method: 'html'
         }, {
-            condition: ( request, path ) => /application\/ld\+json/.test( request.headers.accept ),
-            method: 'rest'
+            condition: function( request, path ) { return /application\/ld\+json/.test( request.headers.accept ) && this.Mongo.collections[ path[0] ] },
+            method: 'ld'
         },
         RestHandler
     ],
@@ -35,10 +35,23 @@ module.exports = Object.create( Object.assign( {}, require('./lib/MyObject'), {
 
     "PUT": [ RestHandler ],
 
+    cacheResources() {
+        this.resources = { }
+
+        return this.P( this.Fs.readdir, [ `${__dirname}/resources` ] )
+        .then( ( [ files ] ) => 
+            Promise.resolve(
+                files.filter( name => !/^[\._]/.test(name) && /\.js/.test(name) )
+                    .forEach( name => this.resources[ name.replace( '.js', '' ) ] = true )
+            )
+        )
+    },
+
     constructor() {
         this.isDev = ( process.env.ENV === 'development' )
 
         this.collectionPromise = this.Mongo.getCollectionData()
+        this.resourcePromise = this.cacheResources()
 
         return this
     },
@@ -97,8 +110,18 @@ module.exports = Object.create( Object.assign( {}, require('./lib/MyObject'), {
         return Promise.resolve()
     },
 
+    ld( request, response, path, qs ) {
+        return Object.create( require(`./resources/.linkedData`), {
+            request: { value: request },
+            response: { value: response },
+            path: { value: path },
+            qs: { value: qs }
+        } ).apply( request.method )
+    },
+
     rest( request, response, path, qs ) {
-        return Object.create( require(`./resource`), {
+        const file = this.resources[ path[0] ] ? path[0] : `__proto__`
+        return Object.create( require(`./resources/${file}`), {
             request: { value: request },
             response: { value: response },
             path: { value: path },

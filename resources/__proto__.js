@@ -1,8 +1,10 @@
-module.exports = Object.assign( { }, require('./lib/MyObject'), {
+module.exports = Object.assign( { }, require('../lib/MyObject'), {
    
     Context: require('./lib/Context'),
 
-    Mongo: require('./dal/Mongo'),
+    Jwt: require('./lib/Jwt'),
+
+    Mongo: require('../dal/Mongo'),
 
     Validate: require('./lib/Validate'),
 
@@ -48,21 +50,19 @@ module.exports = Object.assign( { }, require('./lib/MyObject'), {
             .then( model => Promise.all( model.properties.map( property => db.collection('Property').findOne( { _id: property } ) ) ) )
         ) 
         .then( properties =>
-            Promise.resolve(
-                this.respond( {
-                    body: {
-                        "@context": "http://www.w3.org/ns/hydra/core",
-                        "@id": `https://${process.env.DOMAIN}:${process.env.PORT}/${this.path[0]}`,
-                        "@type": "CreateAction",
-                        name: `Create ${this.path[0]}`,
-                        "method": "POST",
-                        "expects": {
-                            "@id": `http://schema.org/${this.path[0]}`,
-                            "supportedProperty": properties
-                        }
+            this.respond( {
+                body: {
+                    "@context": "http://www.w3.org/ns/hydra/core",
+                    "@id": `https://${process.env.DOMAIN}:${process.env.PORT}/${this.path[0]}`,
+                    "@type": "CreateAction",
+                    name: `Create ${this.path[0]}`,
+                    "method": "POST",
+                    "expects": {
+                        "@id": `http://schema.org/${this.path[0]}`,
+                        "supportedProperty": properties
                     }
-                } )
-            )
+                }
+            } )
         )
     },
 
@@ -75,7 +75,6 @@ module.exports = Object.assign( { }, require('./lib/MyObject'), {
     },
 
     handleItemList( items, db ) {
-        console.log( items )
         return Promise.all( items.map( item => db.collection( item[ "@type" ] ).findOne( { _id: item._id } ) ) )
         .then( results =>
             Promise.all(
@@ -90,15 +89,13 @@ module.exports = Object.assign( { }, require('./lib/MyObject'), {
 
     GET() {
         return this.Mongo.forEach( db => db.collection( this.path[0] ).find( this.query ), this[ `handle${this.path[0]}` ], this )
-        .then( result => {
-            return Promise.resolve(
-                this.respond( {
-                    body: Object.assign( result, {
-                        "@context": "http://schema.org",
-                        "@id": this.request.url } )
-                } )
-            )
-        } )
+        .then( result =>
+            this.respond( {
+                body: Object.assign( result, {
+                    "@context": "http://schema.org",
+                    "@id": this.request.url } )
+            } )
+        )
     },
 
     OPTIONS() {
@@ -125,18 +122,16 @@ module.exports = Object.assign( { }, require('./lib/MyObject'), {
 
         return this.Mongo.forEach( db => db.collection( this.path[0] ).find(), this._addViewNavigationElements, this )
         .then( () =>
-            Promise.resolve(
-                this.respond( {
-                    body: { 
-                        "@context": "http://schema.org",
-                        "@id": this.request.url,
-                        "@type": `ItemList`,
-                        name: this.path[0],
-                        description: `A list of ${this.path[0]} Objects`,
-                        itemListElement: this.itemListElements
-                    }
-                } )
-            )
+            this.respond( {
+                body: { 
+                    "@context": "http://schema.org",
+                    "@id": this.request.url,
+                    "@type": `ItemList`,
+                    name: this.path[0],
+                    description: `A list of ${this.path[0]} Objects`,
+                    itemListElement: this.itemListElements
+                }
+            } )
         )
     },
 
@@ -158,10 +153,29 @@ module.exports = Object.assign( { }, require('./lib/MyObject'), {
         'Keep-Alive': 'timeout=20, max=20'
     },
 
+    parseCookies( cookies ) {
+        var rv
+
+        if( ! cookies ) return ''
+
+        cookies.split(';').forEach( cookie => {
+            var parts = cookie.split('='),
+                name = parts.shift().trim()
+
+            if( name === process.env.COOKIE ) rv = parts.join('=')
+        } )
+
+        return rv
+    },
+
     respond( data ) {
-        data.body = JSON.stringify( data.body )
-        this.response.writeHead( data.code || 200, Object.assign( this.getHeaders( data.body ), data.headers || {} ) )
-        this.response.end( data.body )
-        if( data.stopChain ) { this.handled = true; throw new Error("Handled") }
+        return new Promise( ( resolve, reject ) => {
+            data.body = JSON.stringify( data.body )
+            this.response.writeHead( data.code || 200, Object.assign( this.getHeaders( data.body ), data.headers || {} ) )
+            this.response.end( data.body )
+            return ( data.stopChain ) 
+                ? Promise.reject("Handled")
+                : Promise.resolve()
+        } )
     }
 } )

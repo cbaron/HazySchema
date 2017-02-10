@@ -14,8 +14,8 @@ Mongo.MongoClient.connect(process.env.MONGODB)
     .then( () => db.createCollection('MediaObject') )
     .then( () => db.collection('MediaObject').insertMany( [
         {
-            name: 'logo',
-            contentUrl: `https://${process.env.DOMAIN}/static/img/logo.svg`
+            name: 'logo-white',
+            contentUrl: `https://${process.env.DOMAIN}:${process.env.PORT}/static/img/logo-white.svg`
         },
         {
             name: 'profile',
