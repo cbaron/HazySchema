@@ -17,7 +17,7 @@ Mongo.MongoClient.connect(process.env.MONGODB)
         db.collection('WebPageElement').insertOne( {
             name: 'home-event',
             headline: `Join us for the 10th Annual`,
-            image: `https://${proecss.env.DOMAIN}:${process.env.PORT}/static/img/belmont-sun.jpg`,
+            image: `https://${process.env.DOMAIN}:${process.env.PORT}/static/img/belmont-sun.jpg`,
             spatialCoverage: `Belmont Park / Dayton`,
             text: 'BYOP',
             temporalCoverage: `August 23-24, 2017`
@@ -26,7 +26,7 @@ Mongo.MongoClient.connect(process.env.MONGODB)
         
         db.collection('SiteNavigationElement').insertOne( {
             name: 'disc-doctor',
-            image: `https://${proecss.env.DOMAIN}:${process.env.PORT}/static/img/basket-under-trees.jpg`,
+            image: `https://${process.env.DOMAIN}:${process.env.PORT}/static/img/basket-under-trees.jpg`,
             headline: 'Disc Doctor',
             text: 'Find the perfect disc with this guide'
         } )
@@ -43,28 +43,38 @@ Mongo.MongoClient.connect(process.env.MONGODB)
     )
     .then( () =>
         Promise.all( [
-            db.collection('MediaObject').find( { name: 'logo-white' } ).then( logo => Promise.resolve( { "@type": 'MediaObject', _id: new ( Mongo.ObjectID )( logo._id ) } ) ),
-            db.
-        db.collection('WebPageElement').insertOne( {
-            name: 'Footer',
-            image: `https://${proecss.env.DOMAIN}:${process.env.PORT}/static/img/hazy-tree.jpg`,
-            mainEntity: {
-        } )
+            db.collection('MediaObject').findOne( { name: 'logo-white' } ).then( logo => Promise.resolve( { "@type": 'MediaObject', _id: new ( Mongo.ObjectID )( logo._id ) } ) ),
 
-        
-            .then( result => Promise.resolve( { '@type': 'WebPageElement', _id: new ( Mongo.ObjectID )( result.insertedId ) } ) ),
-            
-        db.collection('ItemList').findOne( { name: 'HeaderNavigationItemList' } ).then( item => Promise.resolve( { '@type': 'ItemList', _id: new ( Mongo.ObjectID )( item._id ) } ) ),
-        db.collection('MediaObject').findOne( { name: 'profile' } ).then( item => Promise.resolve( { '@type': 'MediaObject', _id: new ( Mongo.ObjectID )( item._id ) } ) )
-    ] ) )
-    .then( headerItems => db.collection('WebPageElement').insertOne( {
-        name: 'Header',
-        mainEntity: {
-            '@type': `ItemList`,
-            itemListElement: headerItems
-        }
-    } ) )
+            db.createCollection('LocalBusiness')
+            .then( () =>
+                db.collection('LocalBusiness').insertOne( {
+                    openingHours: `Mon - Sat 11am - 8pm\nSun 12pm-7pm`,
+                    address: {
+                        streetAddress: `723 Watervliet Ave`,
+                        addressLocality: 'Dayton',
+                        addressRegion: 'OH',
+                        postalCode: '45420'
+                    },
+                    email: `hazyshade@gmail.com`,
+                    name: `Hazy Shade Disc Golf`,
+                    telephone: `(937) 256-2690`,
+                    sameAs: [
+                        `https://www.facebook.com/Hazy-Shade-Disc-Golf-And-More-173084619405424`
+                    ]
+                } ).then( result => Promise.resolve( { "@type": 'LocalBusiness', _id: new ( Mongo.ObjectID )( result.insertedId ) } ) )
+            )
+        ] )
+        .then( documents =>
+            db.collection('WebPageElement').insertOne( {
+                name: 'Footer',
+                image: `https://${process.env.DOMAIN}:${process.env.PORT}/static/img/hazy-tree.jpg`,
+                mainEntity: {
+                    '@type': 'ItemList',
+                    itemListElement: documents
+                }
+            } )
+        )
+    )
     .catch( e => console.log( e.stack || e ) )
     .then( () => { db.close(); process.exit(0) } )
 )
-            

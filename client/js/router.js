@@ -12,6 +12,7 @@ module.exports = Object.create( {
         window.onpopstate = this.handle.bind(this)
 
         this.header = this.ViewFactory.create( 'header', { insertion: { value: { el: this.contentContainer, method: 'insertBefore' } } } )
+        this.footer = this.ViewFactory.create( 'footer', { insertion: { value: { el: this.contentContainer.parentNode } } } )
 
         this.User.get().then( () => {
         
