@@ -5,5 +5,6 @@ module.exports={
 	ItemList: require('./views/templates/ItemList'),
 	LocalBusiness: require('./views/templates/LocalBusiness'),
 	MediaObject: require('./views/templates/MediaObject'),
-	SiteNavigationElement: require('./views/templates/SiteNavigationElement')
+	SiteNavigationElement: require('./views/templates/SiteNavigationElement'),
+	WebPageElement: require('./views/templates/WebPageElement')
 }
