@@ -1,15 +1,10 @@
-module.exports = Object.assign( {}, require('./__proto__'), {
+module.exports = Object.assign( {}, require('./WebPageElement'), {
 
     events: {
         signoutBtn: 'click'
     },
 
     onUser() {
-        return this
-    },
-
-    postRender() {
-        this.fetchAndDisplay().catch( this.Error )
         return this
     },
 
@@ -23,8 +18,6 @@ module.exports = Object.assign( {}, require('./__proto__'), {
 
         this.emit('signout')
 
-    },
-
-    type: 'WebPageElement'
+    }
 
 } )
