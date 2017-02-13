@@ -3,6 +3,7 @@ module.exports={
 	Header: require('./views/templates/Header'),
 	Home: require('./views/templates/Home'),
 	ItemList: require('./views/templates/ItemList'),
+	LocalBusiness: require('./views/templates/LocalBusiness'),
 	MediaObject: require('./views/templates/MediaObject'),
 	SiteNavigationElement: require('./views/templates/SiteNavigationElement')
 }

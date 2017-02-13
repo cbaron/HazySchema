@@ -125,7 +125,7 @@ module.exports = Object.assign( { }, require('../../../lib/MyObject'), require('
 
         if( key === 'container' ) {
             el.classList.add( this.name )
-            if( this.model && this.model.data && this.model.data.name ) el.classList.add( this.model.data.name )
+            if( this.model && this.model.data && this.model.data.name && (!/\s/.test(this.model.data.name)) ) el.classList.add( this.model.data.name )
         }
 
         this.els[ key ] = Array.isArray( this.els[ key ] )

@@ -67,7 +67,7 @@ Mongo.MongoClient.connect(process.env.MONGODB)
         .then( documents =>
             db.collection('WebPageElement').insertOne( {
                 name: 'Footer',
-                image: `https://${process.env.DOMAIN}:${process.env.PORT}/static/img/hazy-tree.jpg`,
+                image: `https://${process.env.DOMAIN}:${process.env.PORT}/static/img/hazy-tree.png`,
                 mainEntity: {
                     '@type': 'ItemList',
                     itemListElement: documents
